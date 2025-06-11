@@ -4,7 +4,7 @@ import sys
 import random
 from src.constants import *
 from src.player import Jugador
-from src.enemies import crear_enemigos, mover_enemigos, crear_nuevo_enemigo, crear_jefe
+from src.enemies import crear_enemigos, mover_enemigos, crear_nuevo_enemigo, crear_jefe, Enemigo
 from src.powerups import crear_powerup, aplicar_powerup
 from src.ui import mostrar_vidas, mostrar_puntuacion, mostrar_game_over
 from src.atajos import manejar_atajos
@@ -19,6 +19,14 @@ def cargar_record():
 def guardar_record(record):
     with open('record.json', 'w') as f:
         json.dump({'record': record}, f)
+
+def crear_nuevo_enemigo(grupo_todos, grupo_enemigos):
+    """Crea un nuevo enemigo en una posición aleatoria"""
+    x = random.randint(0, ANCHO - 40)
+    y = random.randint(50, ALTO // 2)
+    enemigo = Enemigo(x, y)
+    grupo_todos.add(enemigo)
+    grupo_enemigos.add(enemigo)
 
 def main():
     # Inicialización de Pygame
@@ -52,7 +60,7 @@ def main():
     ultimo_powerup = 0
     ultimo_enemigo = 0
     jefe_aparecido = False  # Para controlar si el jefe ya apareció
-    intervalo_disparo = 500  # 500ms entre disparos
+    intervalo_disparo = 333  # Reducido de 500 a 333 para aumentar la cadencia en un 33%
     intervalo_powerup = 20000  # 20 segundos entre powerups
     intervalo_enemigo = 500  # 500ms entre enemigos nuevos
     powerup_activo = False
