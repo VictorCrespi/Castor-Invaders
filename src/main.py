@@ -20,14 +20,6 @@ def guardar_record(record):
     with open('record.json', 'w') as f:
         json.dump({'record': record}, f)
 
-def crear_nuevo_enemigo(grupo_todos, grupo_enemigos):
-    """Crea un nuevo enemigo en una posición aleatoria"""
-    x = random.randint(0, ANCHO - 40)
-    y = random.randint(50, ALTO // 2)
-    enemigo = Enemigo(x, y)
-    grupo_todos.add(enemigo)
-    grupo_enemigos.add(enemigo)
-
 def main():
     # Inicialización de Pygame
     pygame.init()
