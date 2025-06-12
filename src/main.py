@@ -51,14 +51,18 @@ def main():
     ultimo_disparo = 0
     ultimo_powerup = 0
     ultimo_enemigo = 0
-    jefe_aparecido = False  # Para controlar si el jefe ya apareció
-    intervalo_disparo = 333  # Reducido de 500 a 333 para aumentar la cadencia en un 33%
-    intervalo_powerup = 20000  # 20 segundos entre powerups
-    intervalo_enemigo = 500  # 500ms entre enemigos nuevos
+    jefe_aparecido = False
+    jefe_derrotado = False  # Nueva variable para controlar si el jefe ha sido derrotado
+    intervalo_disparo = 333
+    intervalo_powerup = 20000
+    intervalo_enemigo = 500
     powerup_activo = False
     tiempo_powerup = 0
+    duracion_powerup = 1500  # 1.5 segundos
     game_over = False
     ejecutando = True
+    enemigos_congelados = False
+    powerup_infinito = False
 
     # Bucle principal
     while ejecutando:
@@ -78,6 +82,7 @@ def main():
                     puntuacion = 0
                     game_over = False
                     jefe_aparecido = False
+                    jefe_derrotado = False  # Reiniciar el estado del jefe
                     grupo_todos.empty()
                     grupo_enemigos.empty()
                     grupo_disparos.empty()
@@ -86,6 +91,18 @@ def main():
                     grupo_todos.add(jugador)
                     grupo_jugador.add(jugador)
                     crear_enemigos(grupo_todos, grupo_enemigos)
+                elif evento.key == pygame.K_F11:  # Congelar/descongelar enemigos
+                    enemigos_congelados = not enemigos_congelados
+                elif evento.key == pygame.K_F2:  # Activar/desactivar power-up infinito
+                    powerup_infinito = not powerup_infinito
+                    if powerup_infinito:
+                        powerup_activo = True
+                        jugador.velocidad_disparo = 3
+                        jugador.ancho_rayo = ANCHO // 2
+                    else:
+                        powerup_activo = False
+                        jugador.velocidad_disparo = 1
+                        jugador.ancho_rayo = 5
             
             # Manejar atajos
             manejar_atajos(evento, grupo_todos, grupo_enemigos, grupo_powerups, jugador)
@@ -95,15 +112,21 @@ def main():
             grupo_jugador.update()
             grupo_disparos.update()
             grupo_powerups.update()
-            mover_enemigos(grupo_enemigos, jugador)
             
-            # Crear nuevos enemigos
-            if tiempo_actual - ultimo_enemigo > intervalo_enemigo:
+            # Mover enemigos solo si no están congelados
+            if not enemigos_congelados:
+                mover_enemigos(grupo_enemigos, jugador)
+            
+            # Verificar si hay un jefe presente
+            jefe_presente = any(enemigo.es_jefe for enemigo in grupo_enemigos)
+            
+            # Crear nuevos enemigos solo si no hay jefe presente y no están congelados
+            if not jefe_presente and not enemigos_congelados and tiempo_actual - ultimo_enemigo > intervalo_enemigo:
                 crear_nuevo_enemigo(grupo_todos, grupo_enemigos)
                 ultimo_enemigo = tiempo_actual
 
-            # Crear jefe al alcanzar 500 puntos
-            if puntuacion >= 500 and not jefe_aparecido:
+            # Crear jefe al alcanzar 500 puntos, solo si no ha sido derrotado antes
+            if puntuacion >= 500 and not jefe_aparecido and not jefe_presente and not jefe_derrotado:
                 print(f"¡Aparece el jefe! Puntuación: {puntuacion}")
                 try:
                     crear_jefe(grupo_todos, grupo_enemigos)
@@ -125,31 +148,38 @@ def main():
                     for enemigo in enemigos:
                         if enemigo.recibir_daño(disparo.daño):
                             enemigo.kill()
-                            puntuacion += 10 if not enemigo.es_jefe else 50  # Más puntos por matar al jefe
-                            print(f"Puntuación actual: {puntuacion}")  # Debug
-                            # Crear powerup aleatoriamente al matar enemigos
-                            if random.random() < 0.1:  # 10% de probabilidad
+                            puntuacion += 10 if not enemigo.es_jefe else 50
+                            print(f"Puntuación actual: {puntuacion}")
+                            if random.random() < 0.1:
                                 crear_powerup(grupo_todos, grupo_powerups)
+                            # Si era un jefe, marcar como derrotado
+                            if enemigo.es_jefe:
+                                jefe_derrotado = True
+                                jefe_aparecido = False
             else:
                 # Rayo con enemigos
                 colisiones_rayo = pygame.sprite.groupcollide(grupo_disparos, grupo_enemigos, False, False)
                 for disparo, enemigos in colisiones_rayo.items():
                     for enemigo in enemigos:
-                        if enemigo.recibir_daño(disparo.daño):
+                        if enemigo.recibir_daño(1):  # Daño fijo de 1 para el rayo
                             enemigo.kill()
-                            puntuacion += 10 if not enemigo.es_jefe else 50  # Más puntos por matar al jefe
-                            print(f"Puntuación actual: {puntuacion}")  # Debug
-                            # Crear powerup aleatoriamente al matar enemigos
-                            if random.random() < 0.1:  # 10% de probabilidad
+                            puntuacion += 10 if not enemigo.es_jefe else 50
+                            print(f"Puntuación actual: {puntuacion}")
+                            if random.random() < 0.1:
                                 crear_powerup(grupo_todos, grupo_powerups)
+                            # Si era un jefe, marcar como derrotado
+                            if enemigo.es_jefe:
+                                jefe_derrotado = True
+                                jefe_aparecido = False
 
             # Disparos con powerups (se activa el powerup)
             colisiones_powerup = pygame.sprite.groupcollide(grupo_disparos, grupo_powerups, True, True)
             for disparo, powerups in colisiones_powerup.items():
                 for powerup in powerups:
-                    powerup_activo = True
-                    tiempo_powerup = tiempo_actual
-                    aplicar_powerup(jugador, powerup.tipo)
+                    if not powerup_infinito:  # Solo activar power-up si no está en modo infinito
+                        powerup_activo = True
+                        tiempo_powerup = tiempo_actual
+                        aplicar_powerup(jugador, powerup.tipo)
 
             # Jugador con enemigos
             if pygame.sprite.spritecollide(jugador, grupo_enemigos, True):
@@ -160,15 +190,16 @@ def main():
             # Jugador con powerups
             powerups_recogidos = pygame.sprite.spritecollide(jugador, grupo_powerups, True)
             for powerup in powerups_recogidos:
-                powerup_activo = True
-                tiempo_powerup = tiempo_actual
-                aplicar_powerup(jugador, powerup.tipo)
+                if not powerup_infinito:  # Solo activar power-up si no está en modo infinito
+                    powerup_activo = True
+                    tiempo_powerup = tiempo_actual
+                    aplicar_powerup(jugador, powerup.tipo)
 
             # Actualizar powerup activo
-            if powerup_activo and tiempo_actual - tiempo_powerup > 5000:  # 5 segundos de duración
+            if powerup_activo and not powerup_infinito and tiempo_actual - tiempo_powerup > duracion_powerup:
                 powerup_activo = False
                 jugador.velocidad_disparo = 1
-                jugador.ancho_rayo = 5  # Volver al ancho normal
+                jugador.ancho_rayo = 5
 
         # Dibujar
         pantalla.fill(NEGRO)
@@ -181,6 +212,18 @@ def main():
         mostrar_vidas(pantalla, vidas)
         mostrar_puntuacion(pantalla, puntuacion)
         
+        # Mostrar tiempo restante del power-up
+        if powerup_activo and not powerup_infinito:
+            tiempo_restante = (duracion_powerup - (tiempo_actual - tiempo_powerup)) / 1000
+            if tiempo_restante > 0:
+                fuente = pygame.font.Font(None, 36)
+                texto = fuente.render(f"Power-up: {tiempo_restante:.1f}s", True, BLANCO)
+                pantalla.blit(texto, (10, ALTO - 40))
+        elif powerup_infinito:
+            fuente = pygame.font.Font(None, 36)
+            texto = fuente.render("Power-up: INFINITO", True, BLANCO)
+            pantalla.blit(texto, (10, ALTO - 40))
+        
         if game_over:
             if not mostrar_game_over(pantalla, puntuacion):
                 ejecutando = False
@@ -190,6 +233,7 @@ def main():
                 puntuacion = 0
                 game_over = False
                 jefe_aparecido = False
+                jefe_derrotado = False  # Reiniciar el estado del jefe
                 grupo_todos.empty()
                 grupo_enemigos.empty()
                 grupo_disparos.empty()
