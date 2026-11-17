@@ -1,6 +1,5 @@
 import pygame
-from src.constants import *
-from src.enemies import crear_jefe
+from src.systems.spawning import spawn_boss
 from src.powerups import crear_powerup
 
 def manejar_atajos(evento, grupo_todos, grupo_enemigos, grupo_powerups, jugador):
@@ -9,7 +8,7 @@ def manejar_atajos(evento, grupo_todos, grupo_enemigos, grupo_powerups, jugador)
         # F12: Aparece el jefe
         if evento.key == pygame.K_F12:
             print("Atajo: Aparece el jefe")
-            crear_jefe(grupo_todos, grupo_enemigos)
+            spawn_boss(grupo_todos, grupo_enemigos)
             
         # F1: Aparece el power-up rayo
         elif evento.key == pygame.K_F1:

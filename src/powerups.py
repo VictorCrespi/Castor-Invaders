@@ -1,6 +1,5 @@
 import pygame
-import random
-from src.constants import *
+from src.constants import ALTO, AMARILLO, ANCHO
 
 def crear_powerup(grupo_todos, grupo_powerups):
     """Crea un powerup en una posición aleatoria en la parte superior"""
@@ -14,7 +13,8 @@ def crear_powerup(grupo_todos, grupo_powerups):
 def aplicar_powerup(jugador, tipo):
     """Aplica el efecto del powerup al jugador"""
     if tipo == "rayo":
-        jugador.velocidad_disparo = 2  # Disparar más rápido
+        jugador.velocidad_disparo = 2
+        jugador.cadencia_disparo = 250
         jugador.ancho_rayo = ANCHO // 2  # Rayo muy ancho (media pantalla)
         jugador.powerup_activo = True
 
@@ -39,18 +39,3 @@ class PowerUp(pygame.sprite.Sprite):
         self.rect.y += self.velocidad_y
         if self.rect.top > ALTO:
             self.kill()
-
-class RayoEspecial(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.Surface((ANCHO_DISPARO * 3, ALTO_DISPARO * 2))
-        self.image.fill(AMARILLO)
-        self.rect = self.image.get_rect()
-        self.rect.centerx = x
-        self.rect.bottom = y
-        self.velocidad_y = -VELOCIDAD_DISPARO * 2
-
-    def update(self):
-        self.rect.y += self.velocidad_y
-        if self.rect.bottom < 0:
-            self.kill() 

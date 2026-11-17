@@ -1,7 +1,12 @@
 import pygame
 import os
-from src.constants import *
-from .powerups import RayoEspecial
+from src.constants import (
+    ALTO,
+    ANCHO,
+    DURACION_POWERUP,
+    VELOCIDAD_JUGADOR,
+)
+from .projectiles import Disparo, RayoEspecial
 
 class Jugador(pygame.sprite.Sprite):
     def __init__(self):
@@ -78,35 +83,3 @@ class Jugador(pygame.sprite.Sprite):
         self.powerup_activo = True
         self.tiempo_powerup = pygame.time.get_ticks()
         self.rayo_disponible = True
-
-class Disparo(pygame.sprite.Sprite):
-    def __init__(self, x, y, ancho):
-        super().__init__()
-        self.image = pygame.Surface((ancho, 20))
-        self.image.fill(AMARILLO)
-        self.rect = self.image.get_rect()
-        self.rect.centerx = x
-        self.rect.bottom = y
-        self.velocidad_y = -10
-        self.daño = 1  # Daño base del disparo normal
-
-    def update(self):
-        self.rect.y += self.velocidad_y
-        if self.rect.bottom < 0:
-            self.kill()
-
-class RayoEspecial(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.Surface((ANCHO_DISPARO * 3, ALTO_DISPARO * 2))
-        self.image.fill(AMARILLO)
-        self.rect = self.image.get_rect()
-        self.rect.centerx = x
-        self.rect.bottom = y
-        self.velocidad_y = -VELOCIDAD_DISPARO * 2
-        self.daño = 3  # El rayo hace más daño
-
-    def update(self):
-        self.rect.y += self.velocidad_y
-        if self.rect.bottom < 0:
-            self.kill() 
