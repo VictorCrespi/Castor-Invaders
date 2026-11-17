@@ -1,4 +1,5 @@
 import pygame
+import random
 from src.constants import ALTO, AMARILLO, ANCHO
 
 def crear_powerup(grupo_todos, grupo_powerups):
@@ -14,9 +15,10 @@ def aplicar_powerup(jugador, tipo):
     """Aplica el efecto del powerup al jugador"""
     if tipo == "rayo":
         jugador.velocidad_disparo = 2
-        jugador.cadencia_disparo = 250
+        jugador.cadencia_disparo = 500
         jugador.ancho_rayo = ANCHO // 2  # Rayo muy ancho (media pantalla)
         jugador.powerup_activo = True
+        jugador.rayo_disponible = True
 
 class PowerUp(pygame.sprite.Sprite):
     def __init__(self, x, y):

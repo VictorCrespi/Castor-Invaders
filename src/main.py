@@ -26,7 +26,7 @@ class Game:
     ENEMY_INTERVAL = 750
     POWERUP_INTERVAL = 20000
     PLAYER_SHOT_INTERVAL = 333
-    POWERUP_DURATION = 1500
+    POWERUP_DURATION = 2000
 
     def __init__(self):
         pygame.init()

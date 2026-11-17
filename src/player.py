@@ -70,9 +70,6 @@ class Jugador(pygame.sprite.Sprite):
                 rayo = RayoEspecial(self.rect.centerx, self.rect.top, self.ancho_rayo)
                 grupo_todos.add(rayo)
                 grupo_disparos.add(rayo)
-                self.rayo_disponible = False
-                self.powerup_activo = False  # Desactivar el power-up después de usarlo
-                self.vidas -= 1  # Quitar una vida al usar el rayo
             else:
                 disparo = Disparo(self.rect.centerx, self.rect.top, self.ancho_rayo)
                 grupo_todos.add(disparo)

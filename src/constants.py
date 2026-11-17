@@ -25,8 +25,8 @@ RETRASO_DISPARO = 250  # milisegundos entre disparos (alias para compatibilidad)
 PROBABILIDAD_POWERUP = 0.1  # 10% de probabilidad de soltar power-up
 
 # Configuración de power-ups
-DURACION_POWERUP = 5000  # 5 segundos
-DURACION_POWER_UP = 5000  # 5 segundos (alias para compatibilidad)
+DURACION_POWERUP = 2000  # 2 segundos
+DURACION_POWER_UP = 2000  # 2 segundos (alias para compatibilidad)
 VELOCIDAD_POWERUP = 3
 
 # Configuración de enemigos
