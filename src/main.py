@@ -55,7 +55,7 @@ def main():
     jefe_derrotado = False  # Nueva variable para controlar si el jefe ha sido derrotado
     intervalo_disparo = 333
     intervalo_powerup = 20000
-    intervalo_enemigo = 500
+    intervalo_enemigo = 750
     powerup_activo = False
     tiempo_powerup = 0
     duracion_powerup = 1500  # 1.5 segundos
@@ -63,6 +63,18 @@ def main():
     ejecutando = True
     enemigos_congelados = False
     powerup_infinito = False
+
+    def desactivar_powerups():
+        nonlocal powerup_activo, powerup_infinito
+        for powerup in list(grupo_powerups):
+            powerup.kill()
+        powerup_activo = False
+        powerup_infinito = False
+        jugador.powerup_activo = False
+        jugador.rayo_disponible = False
+        jugador.velocidad_disparo = 1
+        jugador.cadencia_disparo = 333
+        jugador.ancho_rayo = 5
 
     # Bucle principal
     while ejecutando:
@@ -112,6 +124,14 @@ def main():
             grupo_jugador.update()
             grupo_disparos.update()
             grupo_powerups.update()
+
+            # El jefe aparece sin enemigos normales ni power-ups activos.
+            jefe_presente = any(enemigo.es_jefe for enemigo in grupo_enemigos)
+            if jefe_presente:
+                for enemigo in list(grupo_enemigos):
+                    if not enemigo.es_jefe:
+                        enemigo.kill()
+                desactivar_powerups()
             
             # Mover enemigos solo si no están congelados
             if not enemigos_congelados:
@@ -129,14 +149,18 @@ def main():
             if puntuacion >= 500 and not jefe_aparecido and not jefe_presente and not jefe_derrotado:
                 print(f"¡Aparece el jefe! Puntuación: {puntuacion}")
                 try:
+                    for enemigo in list(grupo_enemigos):
+                        enemigo.kill()
+                    desactivar_powerups()
                     crear_jefe(grupo_todos, grupo_enemigos)
+                    jefe_presente = True
                     print("Jefe creado correctamente")
                     jefe_aparecido = True
                 except Exception as e:
                     print(f"Error al crear el jefe: {e}")
 
             # Crear powerups
-            if tiempo_actual - ultimo_powerup > intervalo_powerup:
+            if not jefe_presente and tiempo_actual - ultimo_powerup > intervalo_powerup:
                 crear_powerup(grupo_todos, grupo_powerups)
                 ultimo_powerup = tiempo_actual
 
